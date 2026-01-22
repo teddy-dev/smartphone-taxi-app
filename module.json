@@ -1,7 +1,7 @@
 {
   "id": "smartphone-taxi-app",
   "title": "Smartphone - Taxi App",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "compatibility": {
     "minimum": "13",
     "verified": "13"
@@ -47,5 +47,5 @@
   "description": "A basic Taxi App for GlitchSmith's Smartphone Widget module.",
   "url": "https://github.com/teddy-dev/smartphone-taxi-app",
   "manifest": "https://raw.githubusercontent.com/teddy-dev/smartphone-taxi-app/refs/heads/main/module.json",
-  "download": ""
+  "download": "https://raw.githubusercontent.com/teddy-dev/smartphone-taxi-app/refs/heads/main/module.zip"
 }
