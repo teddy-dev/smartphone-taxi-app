@@ -1,0 +1,48 @@
+{
+  "id": "smartphone-taxi-app",
+  "title": "Smartphone - Taxi App",
+  "version": "0.0.1",
+  "compatibility": {
+    "minimum": "13",
+    "verified": "13"
+  },
+  "flags": {
+    "canUpload": false
+  },
+  "esmodules": [
+    "scripts/module.js"
+  ],
+  "styles": [
+    {
+      "src": "styles/TaxiApp.css"
+    }
+  ],
+  "socket": true,
+  "relationships": {
+    "requires": [
+      {
+        "id": "smartphone-widget",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "tagger",
+        "type": "module",
+        "compatibility": {}
+      },
+      {
+        "id": "socketlib",
+        "type": "module",
+        "compatibility": {}
+      }
+    ]
+  },
+  "authors": [
+    {
+      "name": "Teddy",
+      "discord": "@teddy",
+      "flags": {}
+    }
+  ],
+  "description": "A basic Taxi App for GlitchSmith's Smartphone Widget module."
+}

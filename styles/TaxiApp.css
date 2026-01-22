@@ -1,0 +1,52 @@
+.taxi-app {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: black;
+}
+
+.taxi-app .smartphone-frame .app-header {
+    border-bottom: 1px solid #4d5061!important;
+}
+
+.taxi-app .app-content {
+    display: flex;
+    justify-content: center; 
+    align-items: center;   
+    width: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    gap: 2px;
+    color: #f3e600;
+}
+
+.taxi-app .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    height: 44px;
+    border-bottom: 1px solid #4d5061;
+    flex-shrink: 0;
+    background-color: #f3e600;
+}
+
+.taxi-app .app-content .taxi-app-scene-list {
+    display: inline-block;
+}
+
+.taxi-app .app-content button {
+    width: 100%;
+    border: 0;
+    border-radius: 0;
+    background-color: #131313;
+    color: #f3e600;
+    font-size: small;
+}
+
+.taxi-app .app-content select {
+    width: 100%;
+    background-color: #131313;
+    color: #f3e600;
+    font-size: small;
+}
