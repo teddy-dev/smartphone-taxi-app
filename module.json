@@ -44,5 +44,8 @@
       "flags": {}
     }
   ],
-  "description": "A basic Taxi App for GlitchSmith's Smartphone Widget module."
+  "description": "A basic Taxi App for GlitchSmith's Smartphone Widget module.",
+  "url": "https://github.com/teddy-dev/smartphone-taxi-app",
+  "manifest": "https://raw.githubusercontent.com/teddy-dev/smartphone-taxi-app/refs/heads/main/module.json",
+  "download": ""
 }
