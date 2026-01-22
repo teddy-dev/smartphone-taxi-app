@@ -8,7 +8,7 @@ This module requires [Smartphone Widget](https://foundryvtt.com/packages/smartph
 [Socketlib](https://foundryvtt.com/packages/socketlib)
 
 ## Usage
-- Enable the app by opening the Smartphone Widget, selecting "Settings" -> "App Store Settings." You should see "Taxi."
+- Enable the app by opening the Smartphone Widget, selecting **Settings** -> **App Store Settings** and then enabling **Taxi**.
 - Create a tile on a destination scene with the tag `TaxiDropOff`. If there are multiple, a random dropoff will be selected.
 - Open the Taxi App, and click the cogwheel at the top left (You must be a GM!). You may add and remove scenes here that players may travel to.
 
