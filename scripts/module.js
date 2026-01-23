@@ -17,6 +17,7 @@ class TaxiApp extends BaseApp {
     static initialize(socket) {
         this.socket = socket; 
         socket.register("movePlayerToScene", movePlayerToScene);
+        socket.register("panToSpot", panToSpot);
         socket.register("getSceneList", async () => {
             const scenes = await game.settings.get(appId, "taxiScenes");
             return scenes;
@@ -325,12 +326,12 @@ async function movePlayerToScene(userid, scene, actor) {
     } catch (e) {} finally {
         game.socket.emit("pullToScene", scene, user.id);
         setTimeout(() => {
-            SpawnCharacter(character, scene);
+            SpawnCharacter(character, userid, scene);
         }, 500);
     }
 }
 
-async function SpawnCharacter(character, sceneId) {
+async function SpawnCharacter(character, userid, sceneId) {
     const spawners = await Tagger.getByTag(game.settings.get(appId, "taxiSpawner"), { sceneId: sceneId });
     if (!spawners || spawners.length === 0) {
         ui.notifications.error("There was no drop-off point configured for this scene.");
@@ -357,6 +358,11 @@ async function SpawnCharacter(character, sceneId) {
         y: Math.round(rY)
     }]);
 
-    await canvas.animatePan({ x: rX, y: rY, scale: canvas.stage.scale.x });
+    TaxiApp.socket.executeAsUser("panToSpot", userid, rX, rY);
+    return;
+}
+
+async function panToSpot(x, y) {
+    await canvas.animatePan({ x: Math.round(rX), y: Math.round(rY), scale: canvas.stage.scale.x });
     return;
 }
