@@ -363,6 +363,6 @@ async function SpawnCharacter(character, userid, sceneId) {
 }
 
 async function panToSpot(x, y) {
-    await canvas.animatePan({ x: Math.round(rX), y: Math.round(rY), scale: canvas.stage.scale.x });
+    await canvas.animatePan({ x: Math.round(x), y: Math.round(y), scale: canvas.stage.scale.x });
     return;
 }
