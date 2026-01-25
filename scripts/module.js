@@ -141,7 +141,8 @@ class TaxiApp extends BaseApp {
         const scenes = game.scenes.filter(scene => {
             return !game.settings.get(appId, "taxiScenes").includes(scene.id);
         }).map(scene => {
-            return `<option value="${scene._id}">${(scene.navName.length ? scene.navName:scene.name)}</option>`
+            const navName = scene.navName || "";
+            return `<option value="${scene._id}">${(navName.length ? navName : scene.name)}</option>`
         }).join(" ");
 
         const content = `
