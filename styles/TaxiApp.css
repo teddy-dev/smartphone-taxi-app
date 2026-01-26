@@ -50,3 +50,10 @@
     color: #f3e600;
     font-size: small;
 }
+
+.taxi-app .app-content input {
+    width: 100%;
+    background-color: #080808;
+    color: #f3e600;
+    font-size: small;
+}
