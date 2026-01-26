@@ -24,9 +24,10 @@ class TaxiApp extends BaseApp {
         });
         socket.register("getSceneName", async (sceneid) => {
             const scene = game.scenes.find(scene => scene.id === sceneid);
+            const navName = scene.navName || "";
             return {
                 id: scene.id,
-                name: (scene.navName.length ? scene.navName:scene.name),
+                name: (navName.length ? navName:scene.name),
                 thumb: scene.thumb
             };
         });
@@ -43,7 +44,7 @@ class TaxiApp extends BaseApp {
     async render() {
         const blockTaxi = await Tagger.getByTag(game.settings.get(appId, "taxiBlocker"))[0];
 
-        if (blockTaxi) {
+        if (blockTaxi && this.currentView === 'map') {
             this.renderTaxiBlocked()
             return;
         }
@@ -69,6 +70,7 @@ class TaxiApp extends BaseApp {
         const content = `
             <div class="taxi-app">
                 <div class="app-header">
+                    ${game.user.isGM ? `<button id="taxi-app-gm"><i class="fas fa-cog"></i></button>`:``}
                     <h3>${this.getAppName(appId, "Taxi")}</h3>
                     <button id="taxi-app-refresh"><i class="fas fa-arrows-rotate"></i></button>
                 </div>
@@ -86,6 +88,7 @@ class TaxiApp extends BaseApp {
         const content = `
             <div class="taxi-app">
                 <div class="app-header">
+                    ${game.user.isGM ? `<button id="taxi-app-gm"><i class="fas fa-cog"></i></button>`:``}
                     <h3>${this.getAppName(appId, "Taxi")}</h3>
                     <button id="taxi-app-refresh"><i class="fas fa-arrows-rotate"></i></button>
                 </div>
@@ -142,7 +145,7 @@ class TaxiApp extends BaseApp {
             return !game.settings.get(appId, "taxiScenes").includes(scene.id);
         }).map(scene => {
             const navName = scene.navName || "";
-            return `<option value="${scene._id}">${(navName.length ? navName : scene.name)}</option>`
+            return `<option data-value="${scene._id}" value="${(navName.length ? navName : scene.name)}"></option>`
         }).join(" ");
 
         const content = `
@@ -154,23 +157,24 @@ class TaxiApp extends BaseApp {
                 </div>
                 <div class="app-content">
                     <h3>Remove Scenes</h3>
-                    <select class="taxi-app-scene-list" id="taxi-app-scene-delete">
-                        <option value="none">Select a Scene to Remove</option>
-                    </select>
+    
+                    <input list="taxi-app-active-datalist" id="taxi-app-del-scene" placeholder="Search for Scene to delete" name="scene-to-delete" />
                     <button id="taxi-app-delete">
                         <i class="fas fa-trash"></i>
                         Remove Scene
                     </button>
+                    <datalist id="taxi-app-active-datalist">
+                    </datalist>
 
                     <h3>Add Scenes</h3>
-                    <select id="taxi-app-scene-select">
-                        <option value="none">Select a Scene to Add</option>
-                        ${scenes}
-                    </select>
+                    <input list="taxi-app-scene-datalist" id="taxi-app-add-scene" placeholder="Search for Scene to add" name="scene-to-add" />
                     <button id="taxi-app-save">
                         <i class="fas fa-square-plus"></i>
                         Add Scene
                     </button>
+                    <datalist id="taxi-app-scene-datalist">
+                        ${scenes}
+                    </datalist>
                 </div>
             </div>
         `;
@@ -179,7 +183,8 @@ class TaxiApp extends BaseApp {
         game.settings.get(appId, "taxiScenes").map(async sceneId => {
             const scene = await TaxiApp.socket.executeAsGM("getSceneName", sceneId);
             if (scene) {
-                window.document.getElementsByClassName("taxi-app-scene-list")[0].insertAdjacentHTML('beforeend', `<option value="${scene.id}">${scene.name}</option>`);
+                const navName = scene.navName || "";
+                this.element.querySelector("#taxi-app-active-datalist").insertAdjacentHTML('beforeend', `<option data-value="${scene.id}" value="${(navName.length ? navName : scene.name)}"></option>`);
             }
         });
     }
@@ -218,21 +223,33 @@ class TaxiApp extends BaseApp {
             }
         } else if (this.currentView === "gm") {
             const saveButton = this.element.querySelector("#taxi-app-save");
-            const sceneSelector = this.element.querySelector("#taxi-app-scene-select");
+            const sceneSelector = this.element.querySelector("#taxi-app-add-scene");
             if (saveButton) {
-                this.addListener(saveButton, "click", (event) => {
+                this.addListener(saveButton, "click", async (event) => {
+                    const selected = sceneSelector.value;
+                    const dataset = this.element.querySelector(`#taxi-app-scene-datalist [value="${selected}"]`); 
+                    if (!dataset) {
+                        const instance = await SmartphoneWidget.getInstance();
+                        return instance.showToastNotification(`<strong>Error</strong>: No scene found!`);
+                    }
+                    const sceneToSave = dataset.getAttribute("data-value");
                     const savedScenes = game.settings.get(appId, "taxiScenes");
-                    const sceneToSave = sceneSelector.value;
-                    savedScenes.push(sceneToSave);
-                    game.settings.set(appId, "taxiScenes", savedScenes);
+                    game.settings.set(appId, "taxiScenes", [...savedScenes, sceneToSave]);
                     this.render();
                 });
             }
             const deleteButton = this.element.querySelector("#taxi-app-delete");
+            const sceneDeleteSelector = this.element.querySelector("#taxi-app-del-scene");
             if (deleteButton) {
-                this.addListener(deleteButton, "click", (event) => {
+                this.addListener(deleteButton, "click", async (event) => {
+                    const selected = sceneDeleteSelector.value;
+                    const dataset = this.element.querySelector(`#taxi-app-active-datalist [value="${selected}"]`)
+                    if (!dataset) {
+                        const instance = await SmartphoneWidget.getInstance();
+                        return instance.showToastNotification(`<strong>Error</strong>: No scene found!`);
+                    }
                     const savedScenes = game.settings.get(appId, "taxiScenes");
-                    const sceneToDelete = sceneDeleteSelector.value;
+                    const sceneToDelete = dataset.getAttribute("data-value");
                     const updatedScenes = savedScenes.filter(scene => scene !== sceneToDelete);
                     game.settings.set(appId, "taxiScenes", updatedScenes);
                     this.render();
@@ -262,6 +279,14 @@ class TaxiApp extends BaseApp {
 Hooks.once('setup', () => {
     game.settings.register(appId, "taxiScenes", {
         name: "Taxi Scenes",
+        scope: "world",
+        config: false,
+        type: Array,
+        default: []
+    });
+
+    game.settings.register(appId, "blockedTaxiScenes", {
+        name: "Blocked Scenes",
         scope: "world",
         config: false,
         type: Array,
