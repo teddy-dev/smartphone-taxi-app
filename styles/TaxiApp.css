@@ -10,9 +10,6 @@
 }
 
 .taxi-app .app-content {
-    display: flex;
-    justify-content: center; 
-    align-items: center;   
     width: 100%;
     overflow-y: scroll;
     overflow-x: hidden;
@@ -53,7 +50,28 @@
 
 .taxi-app .app-content input {
     width: 100%;
+    height: 20px;
     background-color: #080808;
     color: #f3e600;
-    font-size: small;
+    font-size: 16px;
+    padding: 15px;
+}
+
+.taxi-app .app-content .taxi-app-scene {
+    width: 100%;
+    height: 24px;
+    text-align: left;
+    vertical-align: middle;
+    line-height: 16px;
+    font-size: 14px;
+    background-color: #080808;
+    cursor: pointer;
+}
+
+.taxi-app .app-content .taxi-app-scene.active {
+    color: #55ead4;
+}
+
+.taxi-app .app-content .taxi-app-scene.inactive {
+    color: #c5003c;
 }

@@ -118,7 +118,7 @@ class TaxiApp extends BaseApp {
                 </div>
                 <div class="app-content">
                     <div class="map-view">
-                        <img src="modules/smartphone-taxi-app/assets/map.png" />
+                        <img id="taxi-app-map" src="modules/smartphone-taxi-app/assets/map.png" />
                     </div>
                     <select id="taxi-app-scene-list">
                         <option value="none">Select Destination</option>
@@ -141,11 +141,10 @@ class TaxiApp extends BaseApp {
     }
 
     renderGMView() {
-        const scenes = game.scenes.filter(scene => {
-            return !game.settings.get(appId, "taxiScenes").includes(scene.id);
-        }).map(scene => {
+        const scenes = game.scenes.map(scene => {
             const navName = scene.navName || "";
-            return `<option data-value="${scene._id}" value="${(navName.length ? navName : scene.name)}"></option>`
+            const isActive = game.settings.get(appId, "taxiScenes").includes(scene.id);
+            return `<div class="taxi-app-scene ${(isActive ? 'active':'inactive')}" data-value="${scene._id}">${(isActive ? `<i class="fa fa-circle-check"></i>`:`<i class="fa fa-circle-xmark"></i>`)} ${(navName.length ? navName : scene.name)}</div>`
         }).join(" ");
 
         const content = `
@@ -156,37 +155,13 @@ class TaxiApp extends BaseApp {
                     <button id="taxi-app-refresh"><i class="fas fa-arrows-rotate"></i></button>
                 </div>
                 <div class="app-content">
-                    <h3>Remove Scenes</h3>
-    
-                    <input list="taxi-app-active-datalist" id="taxi-app-del-scene" placeholder="Search for Scene to delete" name="scene-to-delete" />
-                    <button id="taxi-app-delete">
-                        <i class="fas fa-trash"></i>
-                        Remove Scene
-                    </button>
-                    <datalist id="taxi-app-active-datalist">
-                    </datalist>
-
-                    <h3>Add Scenes</h3>
-                    <input list="taxi-app-scene-datalist" id="taxi-app-add-scene" placeholder="Search for Scene to add" name="scene-to-add" />
-                    <button id="taxi-app-save">
-                        <i class="fas fa-square-plus"></i>
-                        Add Scene
-                    </button>
-                    <datalist id="taxi-app-scene-datalist">
-                        ${scenes}
-                    </datalist>
+                    <p><small>Click to toggle a scene.</small></p>
+                    <input placeholder="Search for Scenes" id="taxi-app-search" />
+                    ${scenes}
                 </div>
             </div>
         `;
         this.updateContent(content);
-
-        game.settings.get(appId, "taxiScenes").map(async sceneId => {
-            const scene = await TaxiApp.socket.executeAsGM("getSceneName", sceneId);
-            if (scene) {
-                const navName = scene.navName || "";
-                this.element.querySelector("#taxi-app-active-datalist").insertAdjacentHTML('beforeend', `<option data-value="${scene.id}" value="${(navName.length ? navName : scene.name)}"></option>`);
-            }
-        });
     }
 
     setupListeners() {
@@ -214,6 +189,19 @@ class TaxiApp extends BaseApp {
                     }
                 });
             }
+            if (sceneSelector) {
+                this.addListener(sceneSelector, 'change', async(event) => {
+                    const useSceneThumbnail = game.settings.get(appId, "useSceneThumbnail");
+
+                    const map = this.element.querySelector("#taxi-app-map");
+                    if (useSceneThumbnail && event.srcElement.value !== 'none') {
+                        const scene = await TaxiApp.socket.executeAsGM("getSceneName", event.srcElement.value);
+                        map.src = scene.thumb;
+                    } else if (useSceneThumbnail && event.srcElement.value == 'none') {
+                        map.src = "modules/smartphone-taxi-app/assets/map.png";
+                    }
+                });
+            }
             const gmButton = this.element.querySelector('#taxi-app-gm');
             if (gmButton) {
                 this.addListener(gmButton, 'click', (event) => {
@@ -222,39 +210,43 @@ class TaxiApp extends BaseApp {
                 });
             }
         } else if (this.currentView === "gm") {
-            const saveButton = this.element.querySelector("#taxi-app-save");
-            const sceneSelector = this.element.querySelector("#taxi-app-add-scene");
-            if (saveButton) {
-                this.addListener(saveButton, "click", async (event) => {
-                    const selected = sceneSelector.value;
-                    const dataset = this.element.querySelector(`#taxi-app-scene-datalist [value="${selected}"]`); 
-                    if (!dataset) {
-                        const instance = await SmartphoneWidget.getInstance();
-                        return instance.showToastNotification(`<strong>Error</strong>: No scene found!`);
-                    }
-                    const sceneToSave = dataset.getAttribute("data-value");
+            const sceneDivs = this.element.querySelectorAll(".taxi-app-scene");
+
+            sceneDivs.forEach(div => {
+                this.addListener(div, 'click', (event) => {
+                    const sceneToAddOrRemove = event.target.getAttribute("data-value");
                     const savedScenes = game.settings.get(appId, "taxiScenes");
-                    game.settings.set(appId, "taxiScenes", [...savedScenes, sceneToSave]);
-                    this.render();
+                    if (event.target.classList.contains("active")) {
+
+                        const updatedScenes = savedScenes.filter(scene => scene !== sceneToAddOrRemove);
+                        game.settings.set(appId, "taxiScenes", updatedScenes);
+                        event.target.classList.replace("active", "inactive");
+                        event.target.querySelector("i").classList.replace("fa-circle-check", "fa-circle-xmark");
+                    } else {
+                        game.settings.set(appId, "taxiScenes", [...savedScenes, sceneToAddOrRemove]);
+                        event.target.classList.replace("inactive", "active");
+                        event.target.querySelector("i").classList.replace("fa-circle-xmark", "fa-circle-check");
+                    }
+                });
+            })
+
+            const search = this.element.querySelector("#taxi-app-search");
+            if (search) {
+                this.addListener(search, 'keyup', (event) => {
+                    const toSearch = search.value.toLocaleLowerCase();
+                    for (let i = 0; i < sceneDivs.length; i++) {
+                        const div = sceneDivs[i];
+                        const value = div.innerText;
+
+                        if (value.toLocaleLowerCase().includes(toSearch)) {
+                            div.style.display = "";
+                        } else {
+                            div.style.display = "none";
+                        }
+                    }
                 });
             }
-            const deleteButton = this.element.querySelector("#taxi-app-delete");
-            const sceneDeleteSelector = this.element.querySelector("#taxi-app-del-scene");
-            if (deleteButton) {
-                this.addListener(deleteButton, "click", async (event) => {
-                    const selected = sceneDeleteSelector.value;
-                    const dataset = this.element.querySelector(`#taxi-app-active-datalist [value="${selected}"]`)
-                    if (!dataset) {
-                        const instance = await SmartphoneWidget.getInstance();
-                        return instance.showToastNotification(`<strong>Error</strong>: No scene found!`);
-                    }
-                    const savedScenes = game.settings.get(appId, "taxiScenes");
-                    const sceneToDelete = dataset.getAttribute("data-value");
-                    const updatedScenes = savedScenes.filter(scene => scene !== sceneToDelete);
-                    game.settings.set(appId, "taxiScenes", updatedScenes);
-                    this.render();
-                });
-            }
+            
             const gmButton = this.element.querySelector('#taxi-app-gm');
             if (gmButton) {
                 this.addListener(gmButton, 'click', (event) => {
@@ -308,6 +300,15 @@ Hooks.once('setup', () => {
         config: true,
         type: String,
         default: "NoTaxi"
+    });
+
+    game.settings.register(appId, "useSceneThumbnail", {
+        name: "Use Scene Thumbnail",
+        hint: "Use a thumbnail of the scene instead of static image", 
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: false
     });
 
     smartphoneApi = game.modules.get('smartphone-widget')?.api;
