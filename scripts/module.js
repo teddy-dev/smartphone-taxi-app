@@ -25,12 +25,16 @@ class TaxiApp extends BaseApp {
         socket.register("getSceneName", async (sceneid) => {
             const scene = game.scenes.find(scene => scene.id === sceneid);
             const navName = scene.navName || "";
+            const hasCover = ((scene.flags[appId]) ? (scene.flags[appId]['scene-cover']):false);
+
             return {
                 id: scene.id,
                 name: (navName.length ? navName:scene.name),
-                thumb: scene.thumb
+                thumb: scene.thumb,
+                cover: (hasCover ? scene.flags[appId]['scene-cover']:null)
             };
         });
+
         socket.register("taxiScenesUpdated", async () => {
             const instance = await SmartphoneWidget.getInstance();
             const app = instance.apps.get('taxiapp');
@@ -192,14 +196,12 @@ class TaxiApp extends BaseApp {
             if (sceneSelector) {
                 this.addListener(sceneSelector, 'change', async(event) => {
                     const useSceneThumbnail = game.settings.get(appId, "useSceneThumbnail");
-
+                    const scene = await TaxiApp.socket.executeAsGM("getSceneName", event.srcElement.value);
                     const map = this.element.querySelector("#taxi-app-map");
-                    if (useSceneThumbnail && event.srcElement.value !== 'none') {
-                        const scene = await TaxiApp.socket.executeAsGM("getSceneName", event.srcElement.value);
-                        map.src = scene.thumb;
-                    } else if (useSceneThumbnail && event.srcElement.value == 'none') {
-                        map.src = "modules/smartphone-taxi-app/assets/map.png";
-                    }
+
+                    if ( event.srcElement.value !== 'none' && scene.cover !== null) map.src = scene.cover;
+                    else if (useSceneThumbnail && event.srcElement.value !== 'none') map.src = scene.thumb;
+                    else if (useSceneThumbnail && event.srcElement.value == 'none') map.src = "modules/smartphone-taxi-app/assets/map.png";
                 });
             }
             const gmButton = this.element.querySelector('#taxi-app-gm');
@@ -236,13 +238,8 @@ class TaxiApp extends BaseApp {
                     const toSearch = search.value.toLocaleLowerCase();
                     for (let i = 0; i < sceneDivs.length; i++) {
                         const div = sceneDivs[i];
-                        const value = div.innerText;
-
-                        if (value.toLocaleLowerCase().includes(toSearch)) {
-                            div.style.display = "";
-                        } else {
-                            div.style.display = "none";
-                        }
+                        if (div.innerText.toLocaleLowerCase().includes(toSearch)) div.style.display = "";
+                        else div.style.display = "none";
                     }
                 });
             }
@@ -338,6 +335,40 @@ Hooks.once('ready', () => {
 
     const socket = new SmartphoneSocket(appId);
     TaxiApp.initialize(socket);
+});
+
+Hooks.on('renderSceneConfig', (app, html, data) => {
+    const input = `
+        <div class="form-group">
+            <label for="${appId}-file">Taxi App Image</label>
+            <div class="form-fields">
+                <input type="text" id="${appId}-file" name="flags.${appId}.scene-cover" 
+                    value="${app.document.getFlag(appId, 'scene-cover') || ''}" placeholder="path/to/file.ext" />
+                <button type="button" class="file-picker" data-type="file" 
+                        data-target="${appId}-file">
+                <i class="fas fa-file-import fa-fw icon"></i>
+                </button>
+            </div>
+            <p class="hint">An optional image to display when a user selects this scene in the Taxi App.</p>
+        </div>
+    `;
+
+    const root = html instanceof HTMLElement ? html : html?.[0];
+    const foreground = root.querySelector('file-picker[name="foreground"]');
+    if (foreground) foreground.closest('.form-group').insertAdjacentHTML('afterend', input);
+
+    const fileButton = root.querySelector(`button[data-target="${appId}-file"]`);
+    if (fileButton) {
+        fileButton.addEventListener('click', async (event) => {
+            const fp = new FilePicker({
+                type: 'file',
+                callback: (path) => {
+                    root.querySelector(`#${appId}-file`).value = path;
+                }
+            });
+            fp.browse();
+        });
+    }
 });
 
 async function movePlayerToScene(userid, scene, actor) {
