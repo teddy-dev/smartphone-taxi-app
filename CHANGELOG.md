@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.6] - 
+- Added an option to scene configuration to use in place of the default map or scene thumbnail
+
+## [1.0.5] - 2026-02-16
+- Reworked the GM view to be a single list with toggled scenes.
+- Added an option to show a thumbnail of the selected destination scene instead of the static image.
+
 ## [1.0.4] - 2026-01-25
 - Fixed the new input fields in the GM view not having a proper style.
 
