@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.6] - 
+## [1.0.6] - 2026-02-22
 - Added an option to scene configuration to use in place of the default map or scene thumbnail
 
 ## [1.0.5] - 2026-02-16
@@ -20,3 +20,4 @@
 ## [1.0.1] - 2026-01-23
 
 - Fixed an issue where the pan to token would only happen for the GM.
+
