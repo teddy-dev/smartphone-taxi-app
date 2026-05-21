@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.0] - 2026-5-19
+- Updated to support V14.
+- The Taxi App Image option now appears under the "Miscellaneous" tab of the Scene config.
+- The Taxi will attempt drop
+- NEW: Added "Use Signal System" (defaults on). Uses the Smartphone Widget's built-in signal system to determine if the Taxi Service will be unavailable.
+- (Experimental): Added "Ride Share" to allow players to invite another actor to travel together. 
+- - You can only invite one other actor at the moment. Groups do not work.
+
+## [1.0.7] 2026-02-24
+- Added a client option to disable automatic token panning.
+
 ## [1.0.6] - 2026-02-22
 - Added an option to scene configuration to use in place of the default map or scene thumbnail
 
@@ -20,4 +31,3 @@
 ## [1.0.1] - 2026-01-23
 
 - Fixed an issue where the pan to token would only happen for the GM.
-
