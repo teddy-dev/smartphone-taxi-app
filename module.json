@@ -1,10 +1,10 @@
 {
   "id": "smartphone-taxi-app",
   "title": "Smartphone - Taxi App",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "compatibility": {
     "minimum": "13",
-    "verified": "13"
+    "verified": "14"
   },
   "flags": {
     "canUpload": false
@@ -12,15 +12,17 @@
   "esmodules": [
     "scripts/module.js"
   ],
-  "styles": [
-    {
+  "styles": [{
       "src": "styles/TaxiApp.css"
-    }
-  ],
+  }],
+  "languages": [{
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+  }],
   "socket": true,
   "relationships": {
-    "requires": [
-      {
+    "requires": [{
         "id": "smartphone-widget",
         "type": "module",
         "compatibility": {}
@@ -34,16 +36,18 @@
         "id": "socketlib",
         "type": "module",
         "compatibility": {}
-      }
-    ]
+    }]
   },
-  "authors": [
-    {
+  "authors": [{
       "name": "Teddy",
       "discord": "@teddy",
       "flags": {}
+  }],
+  "documentTypes": {
+    "RegionBehavior": {
+      "taxiZone": {}
     }
-  ],
+  },
   "description": "A basic Taxi App for GlitchSmith's Smartphone Widget module.",
   "url": "https://github.com/teddy-dev/smartphone-taxi-app",
   "manifest": "https://raw.githubusercontent.com/teddy-dev/smartphone-taxi-app/refs/heads/main/module.json",

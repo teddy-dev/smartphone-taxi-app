@@ -1,0 +1,6 @@
+{
+    "TAXIAPP.Title": "Smartphone - Taxi App",
+    "TAXIAPP.TaxiZone.name": "Taxi Zone",
+    "TAXIAPP.TaxiZone.label": "Taxi Zone",
+    "TAXIAPP.TaxiZone.hint": "Allow tokens in this zone to use the Taxi App."
+}

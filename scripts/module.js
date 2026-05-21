@@ -2,6 +2,7 @@ const appId = "smartphone-taxi-app";
 
 import { BaseApp } from '../../smartphone-widget/scripts/apps/BaseApp.js';
 import { SmartphoneWidget } from '../../smartphone-widget/scripts/smartphone-widget.js';
+import { SignalManager } from "../../smartphone-widget/scripts/core/SignalManager.js";
 
 let smartphoneApi;
 
@@ -18,6 +19,15 @@ class TaxiApp extends BaseApp {
         this.socket = socket; 
         socket.register("movePlayerToScene", movePlayerToScene);
         socket.register("panToSpot", panToSpot);
+        socket.register("invitePlayerToScene", async (sceneid, actorid, host) => {
+            const actor = game.actors.get(actorid);
+            if (!actor) return;
+            actor.setFlag(appId, "invite", {
+                scene: sceneid,
+                host: host
+            });
+
+        });
         socket.register("getSceneList", async () => {
             const scenes = await game.settings.get(appId, "taxiScenes");
             return scenes;
@@ -53,8 +63,34 @@ class TaxiApp extends BaseApp {
             return;
         }
 
+        /*const requirePickupZone = game.settings.get(appId, "requirePickupZonee");
+        if (requirePickupZone) {
+            const pickup = await Tagger.getByTag(game.settings.get(appId, "taxiSpawner"));
+            pickup.forEach(tile => {});
+        }*/
+
+        if (!SignalManager.hasSignal() && 
+            !SignalManager.isWeakSignal() && 
+            game.settings.get(appId, "useSignalSystem") &&
+            this.currentView !== 'gm') {
+            this.renderTaxiNoSignal();
+            return;
+        }
+
+        const instance = await SmartphoneWidget.getInstance();
+        const actorid = instance.currentActorId;
+        const actor = game.actors.get(actorid);
+
+        if (actor.flags[appId]?.invite !== undefined) {
+            const invite = actor.getFlag(appId, "invite");
+            this.currentView = "invite";
+            this.renderInvite(invite.host, invite.scene);
+            return;
+        }
+
         switch(this.currentView) {
             case 'map':
+            case 'invite':
                 this.renderTaxiView()
                 break;
             case 'gm': 
@@ -62,6 +98,9 @@ class TaxiApp extends BaseApp {
                 break;
             case 'travel': 
                 this.renderTaxiTransit();
+                break;
+            case 'pickup':
+                this.renderTaxiPickup();
                 break;
             default:
                 this.updateContent(this.renderTaxiView());
@@ -81,6 +120,67 @@ class TaxiApp extends BaseApp {
                 <div class="app-content">
                     <span class="no-service">
                         ☹️ <em>Taxi unavailable at this location.</em>
+                    </span>
+                </div>
+            </div>
+        `;
+        this.updateContent(content);
+    }
+
+    renderInvite(inviter, sceneId) {
+        const inviterName  = game.actors.get(inviter).name;
+        const scene = game.scenes.get(sceneId);
+        const content = `
+            <div class="taxi-app">
+                <div class="app-header">
+                    ${game.user.isGM ? `<button id="taxi-app-gm"><i class="fas fa-cog"></i></button>`:``}
+                    <h3>${this.getAppName(appId, "Taxi")}</h3>
+                    <button id="taxi-app-refresh"><i class="fas fa-arrows-rotate"></i></button>
+                </div>
+                <div class="app-content">
+                    <h3>Ride Share Request!</h3>
+                    <p>${inviterName} has invited you to travel together to ${scene.navName.length ? scene.navName:scene.name}!</p>
+                    <button id="taxi-app-accept" data-location="${sceneId}">
+                        <i class="fas fa-route"></i> Accept
+                    </button>
+                    <button id="taxi-app-reject">
+                        <i class="fas fa-route"></i> Decline
+                    </button>
+                </div>
+            </div>
+        `;
+        this.updateContent(content);
+    }
+
+    renderTaxiNoSignal() {
+        const content = `
+            <div class="taxi-app">
+                <div class="app-header">
+                    ${game.user.isGM ? `<button id="taxi-app-gm"><i class="fas fa-cog"></i></button>`:``}
+                    <h3>${this.getAppName(appId, "Taxi")}</h3>
+                    <button id="taxi-app-refresh"><i class="fas fa-arrows-rotate"></i></button>
+                </div>
+                <div class="app-content">
+                    <span class="no-service">
+                        ☹️ <em>You do not have signal!</em>
+                    </span>
+                </div>
+            </div>
+        `;
+        this.updateContent(content);
+    }
+
+    renderTaxiPickup() {
+        const content = `
+            <div class="taxi-app">
+                <div class="app-header">
+                    ${game.user.isGM ? `<button id="taxi-app-gm"><i class="fas fa-cog"></i></button>`:``}
+                    <h3>${this.getAppName(appId, "Taxi")}</h3>
+                    <button id="taxi-app-refresh"><i class="fas fa-arrows-rotate"></i></button>
+                </div>
+                <div class="app-content">
+                    <span class="no-service">
+                        <em>Please head to a pickup location.</em>
                     </span>
                 </div>
             </div>
@@ -124,9 +224,14 @@ class TaxiApp extends BaseApp {
                     <div class="map-view">
                         <img id="taxi-app-map" src="modules/smartphone-taxi-app/assets/map.png" />
                     </div>
+                    <label style="display: inl; align-items: center; cursor: pointer; margin: 0; padding: 0;">
+                        <input id="taxi-app-invite-players" style="background: transparent; margin: 0; padding: 0; width:1.5rem;" type="checkbox" />
+                        Ride Share
+                    </label>
                     <select id="taxi-app-scene-list">
                         <option value="none">Select Destination</option>
                     </select>
+                    
                     <button id="taxi-app-travel">
                         <i class="fas fa-route"></i> Book Ride
                     </button>
@@ -180,16 +285,20 @@ class TaxiApp extends BaseApp {
         if (this.currentView === "map") {
             const travelButton = this.element.querySelector("#taxi-app-travel");
             const sceneSelector = this.element.querySelector("#taxi-app-scene-list");
+            const invitePlayers = this.element.querySelector("#taxi-app-invite-players");
             if (travelButton) {
                 this.addListener(travelButton, 'click', async (event) => {
                     const scene = sceneSelector.value;
                     if (scene !== "none") {
                         const instance = await SmartphoneWidget.getInstance();
                         const actor = instance.currentActorId;
-                        this.movePlayer(scene, actor);
-                        this.destination = scene;
-                        this.currentView = 'travel';
-                        this.render();
+                        if (invitePlayers.checked) {
+                            smartphoneApi.selectChatRecipient("Select Recipient", async (target) => {
+                                const targetActor = game.actors.get(target);
+                                if (targetActor) TaxiApp.socket.executeAsGM("invitePlayerToScene", scene, targetActor.id, actor);
+                                this.processMovementRequest(scene, actor);
+                            });
+                        } else this.processMovementRequest(scene, actor);
                     }
                 });
             }
@@ -251,8 +360,39 @@ class TaxiApp extends BaseApp {
                     this.render();
                 });
             }
+        } else if (this.currentView === 'invite') {
+            const travelButton = this.element.querySelector("#taxi-app-accept");
+            const denyTravelButton = this.element.querySelector("#taxi-app-reject");
+            if (travelButton) {
+                this.addListener(travelButton, 'click', async (event) => {
+                    const instance = await SmartphoneWidget.getInstance();
+                    const actor = instance.currentActorId;
+                    const scene = travelButton.getAttribute("data-location");
+                    game.actors.get(actor).unsetFlag(appId, "invite");
+                    this.processMovementRequest(scene, actor);
+                });
+                
+            } 
+            if (denyTravelButton) {
+                this.addListener(denyTravelButton, 'click', async (event) => {
+                    const instance = await SmartphoneWidget.getInstance();
+                    const actor = instance.currentActorId;
+                    game.actors.get(actor).unsetFlag(appId, "invite");
+                    this.currentView = 'map';
+                    this.render();
+                });
+            }   
         }
         return;
+    }
+
+    processMovementRequest(scene, actor) {
+        this.movePlayer(scene, actor);
+        this.destination = scene;
+        this.currentView = 'travel';
+        setTimeout(() => {
+            this.render();
+        }, 250);
     }
 
     movePlayer(scene, actor) {
@@ -264,6 +404,13 @@ class TaxiApp extends BaseApp {
         return;
     }
 }
+
+class TaxiZoneBehavior extends foundry.data.regionBehaviors.RegionBehaviorType {
+    static LOCALIZATION_PREFIXES = ["TAXIAPP.TaxiZone"];
+    static defineSchema() { return {} }
+    static events = {};
+}
+
 
 Hooks.once('setup', () => {
     game.settings.register(appId, "taxiScenes", {
@@ -290,6 +437,7 @@ Hooks.once('setup', () => {
         type: String,
         default: "TaxiDropOff"
     });
+
     game.settings.register(appId, "taxiBlocker", {
         name: "Block Taxi Tag",
         hint: "The Tagger Tag to use to block actors from accessing Taxi on scene.",
@@ -306,6 +454,33 @@ Hooks.once('setup', () => {
         config: true,
         type: Boolean,
         default: false
+    });
+
+    /*game.settings.register(appId, "requirePickupZone", {
+        name: "Use Taxi Pickup",
+        hint: "Require the player to be in a Taxi Zone region to be picked up by a taxi.",
+        scope: "world",
+        config: true,
+        type: Boolean,
+        default: false
+    });*/
+
+    game.settings.register(appId, "autoPanAfterSwitch", {
+        name: "Automatic Token Pan",
+        hint: "Automatically pan to a token after arriving on new scene.",
+        scope: "client",
+        config: true,
+        type: Boolean,
+        default: true
+    });
+
+    game.settings.register(appId, "useSignalSystem", {
+        name: "Use Signal System",
+        hint: "Use Smartphone Signal to block access to taxi.",
+        scope: "world",
+        config: true, 
+        type: Boolean,
+        default :true
     });
 
     smartphoneApi = game.modules.get('smartphone-widget')?.api;
@@ -337,10 +512,18 @@ Hooks.once('ready', () => {
     TaxiApp.initialize(socket);
 });
 
+Hooks.once("init", () => {
+    CONFIG.RegionBehavior.dataModels[`${appId}.taxiZone`] = TaxiZoneBehavior;
+    CONFIG.RegionBehavior.typeIcons[`${appId}.taxiZone`] = "fa-solid fa-taxi";
+    CONFIG.RegionBehavior.typeLabels[`${appId}.taxiZone`] = "TAXIAPP.TaxiZone.label";
+});
+
 Hooks.on('renderSceneConfig', (app, html, data) => {
     const input = `
+    <fieldset>
+        <legend>Taxi App</legend>
         <div class="form-group">
-            <label for="${appId}-file">Taxi App Image</label>
+            <label for="${appId}-file">Cover Image</label>
             <div class="form-fields">
                 <input type="text" id="${appId}-file" name="flags.${appId}.scene-cover" 
                     value="${app.document.getFlag(appId, 'scene-cover') || ''}" placeholder="path/to/file.ext" />
@@ -349,13 +532,14 @@ Hooks.on('renderSceneConfig', (app, html, data) => {
                 <i class="fas fa-file-import fa-fw icon"></i>
                 </button>
             </div>
-            <p class="hint">An optional image to display when a user selects this scene in the Taxi App.</p>
+            <p class="hint">(Optional) The image to display when a user selects this scene in the Taxi App.</p>
         </div>
+    </fieldset>
     `;
 
     const root = html instanceof HTMLElement ? html : html?.[0];
-    const foreground = root.querySelector('file-picker[name="foreground"]');
-    if (foreground) foreground.closest('.form-group').insertAdjacentHTML('afterend', input);
+    const target = root.querySelector('[data-application-part="misc"] > fieldset:last-of-type');
+    if (target) target.insertAdjacentHTML('afterend', input);
 
     const fileButton = root.querySelector(`button[data-target="${appId}-file"]`);
     if (fileButton) {
@@ -382,7 +566,7 @@ async function movePlayerToScene(userid, scene, actor) {
             await game.scenes.get(user.viewedScene).deleteEmbeddedDocuments("Token", ids);
         }
     } catch (e) {} finally {
-        game.socket.emit("pullToScene", scene, user.id);
+        game.socket.emit("pullToScene", scene, user.id, { level : scene.initialLevel });
         setTimeout(() => {
             SpawnCharacter(character, userid, scene);
         }, 500);
@@ -421,6 +605,8 @@ async function SpawnCharacter(character, userid, sceneId) {
 }
 
 async function panToSpot(x, y) {
-    await canvas.animatePan({ x: Math.round(x), y: Math.round(y), scale: canvas.stage.scale.x });
+    if (game.settings.get(appId, "autoPanAfterSwitch")) {
+        await canvas.animatePan({ x: Math.round(x), y: Math.round(y), scale: canvas.stage.scale.x });
+    }
     return;
 }
