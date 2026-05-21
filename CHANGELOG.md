@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1] - 2025-5-21
+- A text message is now sent to the invited actor's phone when invited to Ride Share directing them to open the app to accept.
+- You can now change the default map cover image.
+- Added a fallback to use default map cover when "Use Scene Thumbnail" is enabled but no thumbnail is available.
+- Now supports localization. Unfortunately, I barely speak English, so other languages will come later.
+- Internal refactoring for my little remaining sanity.
+
 ## [1.1.0] - 2026-5-19
 - Updated to support V14.
 - The Taxi App Image option now appears under the "Miscellaneous" tab of the Scene config.
