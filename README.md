@@ -26,6 +26,8 @@ Use the manifest url to add the app:
 ```
 https://raw.githubusercontent.com/teddy-dev/smartphone-taxi-app/refs/heads/main/module.json
 ```
-
-## Support
+## ℹ️ Help 
 Support and updates available on my [Discord](https://discord.gg/SUgbgG8).
+
+## 💳 Support the Project
+You can support me and the project via [Patreon](https://patreon.com/teddydev)! _(Optional)_
