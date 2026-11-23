@@ -11,8 +11,8 @@ This module requires [Smartphone Widget](https://foundryvtt.com/packages/smartph
 
 ## 📔 Usage
 - Enable the app by opening the Smartphone Widget, selecting **Settings** -> **App Store Settings** and then enabling **Taxi**.
-- Create a tile on a destination scene with the tag `TaxiDropOff`. If there are multiple, a random dropoff will be selected.
-- Open the Taxi App, and click the cogwheel at the top left (You must be a GM!). You may add and remove scenes here that players may travel to.
+- Create a tile or region on a destination scene. If using a tile, add the tag `TaxiDropOff`, or add the "Taxi Zone" behavior with a region. If there are multiple, a random drop-off will be selected.
+- Open the Taxi App, and click the cogwheel at the top left (You must be a GM!). You may add and remove scenes here that players may travel to by clicking on them.
 - Players can now open the Taxi App, and use the dropdown to select a scene and use **Book Ride** to travel.
 
 ## 📋 Notes
@@ -20,6 +20,7 @@ This module requires [Smartphone Widget](https://foundryvtt.com/packages/smartph
 - The teleported actor is whoever owns the phone. GMs or players with multiple should ensure they have the intended actor's phone as their active phone.
 - You can add a tile with the tag `NoTaxi` to block the Taxi App from working on the scene. This will ensure players cannot taxi off of the scene.
 - This is still in testing, I am still figuring things out.
+- Spawning a little off? Try making the tile or region smaller and aligned with the grid.
 
 ## 💾 Installing
 Use the manifest url to add the app:
