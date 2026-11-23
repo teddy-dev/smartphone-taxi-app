@@ -1,5 +1,8 @@
 # Changelog
 
+## [1.2.2] - 2026-11-23
+- Hotfix: Removed es.json being included in module.json incorrectly.
+
 ## [1.2.1] - 2026-11-23
 - Hotfix: Fixed an issue that could sometimes cause a token to not spawn in a region.
 
