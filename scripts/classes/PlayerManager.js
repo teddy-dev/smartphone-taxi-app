@@ -52,8 +52,7 @@ export class PlayerManager {
         if (regionSpawners.length === 0) return ui.notifications.error("No spawner set on this scene.");
 
         const region = ( regionSpawners.length === 1 ? regionSpawners[0]:regionSpawners[Math.floor(Math.random() * regionSpawners.length)]);
-        const placeable = canvas.regions.placeables.find(r => r.document === region);
-        const point = placeable.polygonTree.sampleInterior();
+        const point = region.polygonTree.sampleInterior();
 
         this._cleanUpTokens(character, sceneId);
 
