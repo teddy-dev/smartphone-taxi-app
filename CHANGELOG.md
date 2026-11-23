@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1] - 2026-11-23
+- Hotfix: Fixed an issue that could sometimes cause a token to not spawn in a region.
+
+## [1.2.0] - 2026-11-23
+- Now supports regions! Added the "Taxi Zone" behavior which will, when loading, spawn the character in the provided region.
+- Improved reliability of tile-based spawners. 
+
+## [1.1.1] - 2026-10-25
+- Fixed settings not being localized correctly.
+
 ## [1.1.1] - 2025-5-21
 - A text message is now sent to the invited actor's phone when invited to Ride Share directing them to open the app to accept.
 - You can now change the default map cover image.
