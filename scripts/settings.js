@@ -3,7 +3,7 @@ const appId = "smartphone-taxi-app";
 
 export function registerSettings() {
     game.settings.register(appId, "taxiScenes", {
-        name: "Taxi Scenes",
+        name: "Taxi Scene",
         scope: "world",
         config: false,
         type: Array,
@@ -19,8 +19,8 @@ export function registerSettings() {
     });
     
     game.settings.register(appId, "taxiSpawner", {
-        name: "Taxi Spawn Tag",
-        hint: "The Tagger Tag to use to Spawn a token on a scene.",
+        name: "TAXIAPP.settings.tag.name",
+        hint: "TAXIAPP.settings.tag.hint",
         scope: "world",
         config: true,
         type: String,
@@ -28,8 +28,8 @@ export function registerSettings() {
     });
 
     game.settings.register(appId, "taxiBlocker", {
-        name: "Block Taxi Tag",
-        hint: "The Tagger Tag to use to block actors from accessing Taxi on scene.",
+        name: "TAXIAPP.settings.block.name",
+        hint: "TAXIAPP.settings.block.hint",
         scope: "world",
         config: true,
         type: String,
@@ -37,8 +37,8 @@ export function registerSettings() {
     });
 
     game.settings.register(appId, "useSceneThumbnail", {
-        name: "Use Scene Thumbnail",
-        hint: "Use a thumbnail of the scene instead of static image", 
+        name: "TAXIAPP.settings.thumbnail.name",
+        hint: "TAXIAPP.settings.thumbnail.hint", 
         scope: "world",
         config: true,
         type: Boolean,
@@ -46,8 +46,8 @@ export function registerSettings() {
     });
 
     /*game.settings.register(appId, "requirePickupZone", {
-        name: "Use Taxi Pickup",
-        hint: "Require the player to be in a Taxi Zone region to be picked up by a taxi.",
+        name: "TAXIAPP.settings.pickup.name",
+        hint: "TAXIAPP.settings.pickup.hint",
         scope: "world",
         config: true,
         type: Boolean,
@@ -55,8 +55,8 @@ export function registerSettings() {
     });*/
 
     game.settings.register(appId, "autoPanAfterSwitch", {
-        name: "Automatic Token Pan",
-        hint: "Automatically pan to a token after arriving on new scene.",
+        name: "TAXIAPP.settings.pan.name",
+        hint: "TAXIAPP.settings.pan.hint",
         scope: "client",
         config: true,
         type: Boolean,
@@ -64,8 +64,8 @@ export function registerSettings() {
     });
 
     game.settings.register(appId, "coverImage", {
-        name: "Cover Image",
-        hint: "The default 'map' image.",
+        name: "TAXIAPP.settings.cover.name",
+        hint: "TAXIAPP.settings.cover.hint",
         scope: "world", 
         config: true,
         type: String,
@@ -74,8 +74,8 @@ export function registerSettings() {
     });
 
     game.settings.register(appId, "useSignalSystem", {
-        name: "Use Signal System",
-        hint: "Use Smartphone Signal to block access to taxi.",
+        name: "TAXIAPP.settings.signal.name",
+        hint: "TAXIAPP.settings.signal.hint",
         scope: "world",
         config: true, 
         type: Boolean,

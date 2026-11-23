@@ -400,10 +400,7 @@ export class TaxiApp extends BaseApp {
     }
 
     movePlayer(scene, actor) {
-        if (game.user.viewedScene === scene) {
-            ui.notifications.error("You are already on that scene.");
-            return;
-        }
+        if (game.user.viewedScene === scene) return ui.notifications.error("You are already on that scene.");
         TaxiApp.socket.executeAsGM("movePlayerToScene", game.user.id, scene, actor);
         return;
     }
